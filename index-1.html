@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a0f1e">
+<link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg">
+<title>Naqi AI Bot</title>
+<style>
+:root{--g:#22c55e;--r:#ef4444;--y:#eab308;--b:#3b82f6;--t:#e8ecf8;--m:#8b94ad}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:radial-gradient(circle at 50% -10%,#1b2a5a,#0a0f1e 60%) fixed;color:var(--t);font:16px system-ui,sans-serif;padding-top:env(safe-area-inset-top);min-height:100vh}
+main{padding:16px 16px 100px;max-width:520px;margin:auto}
+.v{display:none}.v.on{display:block;animation:f .3s}@keyframes f{from{opacity:0;transform:translateY(8px)}}
+h1{margin:6px 0 0;text-align:center;letter-spacing:2px;font-size:26px}
+.tag{text-align:center;color:var(--m);font-size:13px;margin:4px 0 16px}
+.card{background:rgba(255,255,255,.07);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:16px;margin-bottom:14px}
+select,input,button{font:inherit;color:var(--t)}
+select,input{width:100%;padding:14px;border-radius:14px;background:#141b33;border:1px solid #2a3560;margin:6px 0}
+label{color:var(--m);font-size:13px}
+.tfs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
+.tf{padding:14px 4px;border-radius:14px;background:#141b33;border:1px solid #2a3560}.tf.on{background:var(--b);border-color:var(--b)}
+.big{width:100%;padding:18px;border-radius:18px;border:0;font-size:20px;font-weight:800;background:linear-gradient(135deg,#3b82f6,#6366f1);margin-top:10px}
+.big.stop{background:linear-gradient(135deg,#ef4444,#b91c1c)}.big.sm{font-size:16px;padding:14px}
+.pill{display:inline-block;padding:6px 14px;border-radius:99px;background:#1a2244;font-size:14px}
+.pill.g{color:var(--g)}.pill.r{color:var(--r)}.pill.y{color:var(--y)}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#0d1330f2;border-top:1px solid #222c55;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;background:none;border:0;padding:8px 0;font-size:11px;color:var(--m)}nav button.on{color:#fff}nav b{display:block;font-size:20px;font-weight:400}
+.sig{font-size:54px;font-weight:900;text-align:center;margin:6px 0}
+.UP{color:var(--g)}.DOWN{color:var(--r)}.WAIT{color:var(--y)}
+.row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #ffffff12}.row span:first-child{color:var(--m)}
+.cd{font-size:34px;font-weight:800;text-align:center;font-variant-numeric:tabular-nums}
+#why div{padding:5px 0;font-size:14px}
+canvas{width:100%;height:300px;touch-action:none;border-radius:12px}
+table{width:100%;border-collapse:collapse;font-size:12px}td,th{padding:7px 3px;border-bottom:1px solid #ffffff14;text-align:left}
+.disc{font-size:11px;color:var(--m);text-align:center;margin-top:10px}
+#toast{position:fixed;top:calc(12px + env(safe-area-inset-top));left:12px;right:12px;background:#111a3a;border:2px solid var(--b);border-radius:18px;padding:16px;text-align:center;font-weight:700;transform:translateY(-200%);transition:.4s;z-index:9}#toast.on{transform:none}
+.sw{display:flex;justify-content:space-between;align-items:center;padding:10px 0}.sw input{width:24px;height:24px;margin:0}
+</style></head><body>
+<div id="toast"></div>
+<main>
+<h1>NAQI AI BOT</h1><div class="tag">Live Market Analysis • AI Signals • One-Tap Start</div>
+
+<section class="v on" id="home">
+ <div class="card" id="welcome" style="display:none"><b>Welcome to Naqi AI Bot</b><p style="color:var(--m)">Connect your market-data API to start live analysis.</p>
+  <button class="big sm" onclick="go('settings')">SETUP API</button>
+  <button class="big sm" style="background:#2a3560" onclick="S.paper=1;save();$('#welcome').style.display='none';toast('Paper mode ON — still uses real data, no real money')">DEMO / PAPER MODE</button></div>
+ <div class="card"><label>Market</label><select id="mk"></select>
+  <label>Timeframe</label><div class="tfs" id="tfs"></div>
+  <button class="big" id="go" onclick="toggle()">START BOT</button>
+  <div style="text-align:center;margin-top:12px"><span class="pill" id="st">⚪ IDLE</span></div></div>
+</section>
+
+<section class="v" id="signal">
+ <div class="card"><div style="text-align:center;color:var(--m);font-size:13px">NAQI AI SIGNAL</div>
+  <div id="wait" style="text-align:center;padding:30px 0;color:var(--y)">Press START BOT on Home.<br>WAITING FOR LIVE MARKET DATA</div>
+  <div id="sd" style="display:none">
+   <div class="sig" id="sg"></div>
+   <div class="row"><span>Market</span><b id="s_m"></b></div><div class="row"><span>Price</span><b id="s_p"></b></div>
+   <div class="row"><span>Recommended</span><b id="s_r"></b></div><div class="row"><span>Model Confidence</span><b id="s_c"></b></div>
+   <div class="row"><span>Trend</span><b id="s_t"></b></div><div class="row"><span>Score (-100…+100)</span><b id="s_s"></b></div>
+   <div class="row"><span>Signal generated</span><b id="s_g"></b></div>
+   <div style="text-align:center;color:var(--m);font-size:13px;margin-top:12px" id="cdl"></div><div class="cd" id="cd">--:--</div></div></div>
+ <div class="card" id="whyc" style="display:none"><b>Why Naqi AI gave this signal</b><div id="why"></div></div>
+</section>
+
+<section class="v" id="chart"><div class="card"><canvas id="cv"></canvas>
+ <div style="font-size:12px;color:var(--m)">Pinch to zoom • <span style="color:#3b82f6">EMA9</span> <span style="color:#eab308">EMA21</span> <span style="color:#f472b6">EMA50</span> • dashed = support/resistance</div></div></section>
+
+<section class="v" id="history"><div class="card"><b>HISTORY</b>
+ <table><thead><tr><th>Time</th><th>Mkt</th><th>TF</th><th>Sig</th><th>Conf</th><th>Price</th><th>Result</th></tr></thead><tbody id="hb"></tbody></table>
+ <button class="big sm" style="background:#2a3560" onclick="if(confirm('Clear history?')){H=[];save();hist()}">CLEAR HISTORY</button></div></section>
+
+<section class="v" id="settings"><div class="card"><b>⚙ SETTINGS</b><br>
+ <label>Market Data Provider</label><input value="Twelve Data (twelvedata.com)" disabled>
+ <label>API Key</label><input id="key" type="password" placeholder="Paste your Twelve Data API key" autocomplete="off">
+ <label>Refresh every</label><select id="poll"><option value="15">15 sec</option><option value="30">30 sec</option><option value="60">60 sec</option></select>
+ <button class="big sm" onclick="testConn()">TEST CONNECTION</button>
+ <div style="margin-top:10px">Status: <span class="pill" id="cs">Not tested</span></div>
+ <div class="sw"><span>🔊 Sound</span><input type="checkbox" id="snd"></div>
+ <div class="sw"><span>🔔 Browser notifications</span><input type="checkbox" id="ntf"></div>
+ <div class="sw"><span>📝 Paper mode (tags history as simulated)</span><input type="checkbox" id="ppr"></div>
+ <p class="disc" style="text-align:left">Your key is stored only in this phone's browser storage and sent only to Twelve Data. Naqi AI never asks for Quotex credentials.</p></div></section>
+<div class="disc"><b>Naqi AI provides market analysis only. It does not guarantee future price movements or trading profits.</b></div>
+</main>
+<nav id="nav"><button data-v="home" class="on"><b>🏠</b>HOME</button><button data-v="signal"><b>📊</b>SIGNAL</button><button data-v="chart"><b>📈</b>CHART</button><button data-v="history"><b>🕘</b>HISTORY</button><button data-v="settings"><b>⚙</b>SETTINGS</button></nav>
+
+<script>
+const $=s=>document.querySelector(s);
+const MK=['EUR/USD','GBP/USD','USD/JPY','USD/CHF','AUD/USD','USD/CAD','NZD/USD','EUR/GBP','EUR/JPY','GBP/JPY','BTC/USD','ETH/USD'];
+const TFS=[[1,'1 MIN'],[3,'3 MIN'],[5,'5 MIN'],[15,'15 MIN'],[30,'30 MIN'],[60,'1 HOUR']];
+const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};
+let S=Object.assign({market:'EUR/USD',tf:5,key:'',sound:true,notif:false,paper:false,poll:30},ld('naqi',{}));
+let H=ld('naqi_h',[]);
+const save=()=>{try{localStorage.setItem('naqi',JSON.stringify(S));localStorage.setItem('naqi_h',JSON.stringify(H.slice(0,100)))}catch(e){}};
+let run=false,T=null,D={},zoom=60,lastKey=ld('naqi_k','')&&0;
+
+// ---------- UI ----------
+function go(v){document.querySelectorAll('.v').forEach(e=>e.classList.toggle('on',e.id===v));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));if(v==='chart')draw();if(v==='history')hist();window.scrollTo(0,0)}
+$('#nav').onclick=e=>{const b=e.target.closest('button');if(b)go(b.dataset.v)};
+$('#mk').innerHTML=MK.map(m=>`<option>${m}</option>`).join('');$('#mk').value=S.market;
+$('#mk').onchange=e=>{S.market=e.target.value;save();if(run)restart()};
+$('#tfs').innerHTML=TFS.map(([v,l])=>`<button class="tf" data-v="${v}">${l}</button>`).join('');
+function tfUI(){document.querySelectorAll('.tf').forEach(b=>b.classList.toggle('on',+b.dataset.v===S.tf))}
+$('#tfs').onclick=e=>{const b=e.target.closest('.tf');if(!b)return;S.tf=+b.dataset.v;save();tfUI();if(run)restart()};tfUI();
+$('#key').value=S.key;$('#snd').checked=S.sound;$('#ntf').checked=S.notif;$('#ppr').checked=S.paper;$('#poll').value=S.poll;
+$('#key').onchange=e=>{S.key=e.target.value.trim();save();$('#welcome').style.display='none'};
+$('#poll').onchange=e=>{S.poll=+e.target.value;save()};
+$('#snd').onchange=e=>{S.sound=e.target.checked;save()};
+$('#ppr').onchange=e=>{S.paper=e.target.checked;save()};
+$('#ntf').onchange=async e=>{S.notif=e.target.checked;if(S.notif&&'Notification' in window&&Notification.permission!=='granted'){const p=await Notification.requestPermission();if(p!=='granted'){S.notif=false;e.target.checked=false}}save()};
+if(!S.key&&!S.paper)$('#welcome').style.display='block';
+function setSt(t,c=''){const e=$('#st');e.textContent=t;e.className='pill '+c}
+function toast(t,ms=6000){const e=$('#toast');e.innerHTML=t;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),ms)}
+function beep(){if(!S.sound)return;try{const a=new(window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=880;g.gain.value=.15;o.start();o.stop(a.currentTime+.25)}catch(e){}}
+const fmt=p=>p>=100?p.toFixed(3):p>=10?p.toFixed(4):p.toFixed(5);
+
+// ---------- API ----------
+async function testConn(){const k=$('#key').value.trim();S.key=k;save();const c=$('#cs');if(!k){c.textContent='Enter a key';c.className='pill r';return}
+ c.textContent='Testing...';c.className='pill';
+ try{const j=await(await fetch(`https://api.twelvedata.com/price?symbol=EUR/USD&apikey=${encodeURIComponent(k)}`)).json();
+  if(j.price){c.textContent='✓ API CONNECTED';c.className='pill g';$('#welcome').style.display='none'}else{c.textContent='✗ '+(j.message||'Failed').slice(0,70);c.className='pill r'}}
+ catch(e){c.textContent='✗ Network error';c.className='pill r'}}
+function agg(cs,ms){const m=new Map();for(const c of cs){const k=Math.floor(c.t/ms)*ms,x=m.get(k);if(!x)m.set(k,{t:k,o:c.o,h:c.h,l:c.l,c:c.c,v:c.v});else{x.h=Math.max(x.h,c.h);x.l=Math.min(x.l,c.l);x.c=c.c;x.v+=c.v}}return[...m.values()]}
+async function load(){const b=S.tf===3?1:S.tf,iv={1:'1min',5:'5min',15:'15min',30:'30min',60:'1h'}[b],sz=S.tf===3?400:160;
+ const r=await fetch(`https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(S.market)}&interval=${iv}&outputsize=${sz}&timezone=UTC&apikey=${encodeURIComponent(S.key)}`);
+ const j=await r.json();if(j.status==='error'||!j.values){const e=new Error(j.message||'API error');e.code=j.code;throw e}
+ const cs=j.values.map(v=>({t:Date.parse(v.datetime.replace(' ','T')+'Z'),o:+v.open,h:+v.high,l:+v.low,c:+v.close,v:v.volume?+v.volume:0})).filter(c=>c.t&&c.c).reverse();
+ return S.tf===3?agg(cs,180000):cs}
+
+// ---------- Indicators ----------
+const ema=(a,p)=>{const k=2/(p+1),o=[a[0]];for(let i=1;i<a.length;i++)o.push(a[i]*k+o[i-1]*(1-k));return o};
+function rsi(c,p=14){let g=0,l=0;for(let i=1;i<=p;i++){const d=c[i]-c[i-1];d>0?g+=d:l-=d}g/=p;l/=p;for(let i=p+1;i<c.length;i++){const d=c[i]-c[i-1];g=(g*(p-1)+Math.max(d,0))/p;l=(l*(p-1)+Math.max(-d,0))/p}return l===0?100:100-100/(1+g/l)}
+function analyze(cs){const ms=S.tf*60000,cl=cs.filter(c=>c.t+ms<=Date.now()+1500);if(cl.length<60)throw new Error('Not enough candles ('+cl.length+'/60)');
+ const c=cl.map(x=>x.c),n=c.length,px=c[n-1],e9=ema(c,9)[n-1],e21=ema(c,21)[n-1],e50=ema(c,50)[n-1];
+ const m=ema(c,12).map((v,i)=>v-ema(c,26)[i]),sl=ema(m,9),macd=m[n-1],msig=sl[n-1],hist=macd-msig;
+ const r=rsi(c),w=c.slice(-20),mean=w.reduce((a,b)=>a+b)/20,sd=Math.sqrt(w.reduce((a,b)=>a+(b-mean)**2,0)/20),bu=mean+2*sd,bl=mean-2*sd;
+ const tr=cl.slice(-14).map((x,i,a)=>{const pc=(cl[cl.length-14+i-1]||x).c;return Math.max(x.h-x.l,Math.abs(x.h-pc),Math.abs(x.l-pc))}),atr=tr.reduce((a,b)=>a+b)/14;
+ const mom=px-c[n-11],rec=cl.slice(-20),sup=Math.min(...rec.map(x=>x.l)),res=Math.max(...rec.map(x=>x.h));
+ const vol=cl.slice(-1)[0].v,vavg=cl.slice(-20).reduce((a,b)=>a+b.v,0)/20;
+ const F=[];const add=(b,w,t)=>F.push({b,w,t});
+ add(e9>e21,20,`EMA 9 (${fmt(e9)}) is ${e9>e21?'above':'below'} EMA 21 (${fmt(e21)})`);
+ add(e21>e50,15,`EMA 21 is ${e21>e50?'above':'below'} EMA 50 (${fmt(e50)})`);
+ add(px>e21,15,`Price is ${px>e21?'above':'below'} EMA 21`);
+ add(hist>0,15,`MACD is ${hist>0?'bullish':'bearish'} (histogram ${hist.toExponential(2)})`);
+ add(r>50,10,`RSI is ${r.toFixed(1)}${r>70?' (overbought)':r<30?' (oversold)':''}`);
+ add(mom>0,10,`Momentum(10) is ${mom>0?'positive':'negative'} (${mom.toExponential(2)})`);
+ const nearS=px-sup<.5*atr,nearR=res-px<.5*atr;
+ F.push({b:nearS?true:nearR?false:null,w:15,t:nearS?`Price is holding near support ${fmt(sup)}`:nearR?`Price is pressing resistance ${fmt(res)}`:`Support ${fmt(sup)} / resistance ${fmt(res)} not close`});
+ let score=0,bw=0,sw=0;F.forEach(f=>{if(f.b===true){score+=f.w;bw+=f.w}else if(f.b===false){score-=f.w;sw+=f.w}});
+ const sig=score>=40?'UP':score<=-40?'DOWN':'WAIT';
+ const conf=Math.min(90,Math.round((sig==='DOWN'?sw:bw)/100*100));
+ const info=[`Bollinger: price at ${(((px-bl)/(bu-bl))*100).toFixed(0)}% of band (${fmt(bl)}–${fmt(bu)})`,`ATR(14): ${fmt(atr)}`];
+ if(vavg>0)info.push(`Volume: ${vol.toFixed(0)} vs 20-avg ${vavg.toFixed(0)}`);
+ return{sig,score,conf,px,F,info,sup,res,key:cl[n-1].t,last:cl[n-1],trend:e9>e21&&e21>e50?'Bullish':e9<e21&&e21<e50?'Bearish':'Mixed'}}
+
+// ---------- Engine ----------
+function toggle(){run?stop():start()}
+function start(){if(!S.key){go('settings');toast('Enter your API key first');return}run=true;$('#go').textContent='STOP BOT';$('#go').classList.add('stop');lastKey=null;D={};tick(true)}
+function stop(){run=false;clearTimeout(T);$('#go').textContent='START BOT';$('#go').classList.remove('stop');setSt('⚪ IDLE');$('#sd').style.display=$('#whyc').style.display='none';$('#wait').style.display='block';$('#wait').innerHTML='Bot stopped.<br>WAITING FOR LIVE MARKET DATA'}
+function restart(){clearTimeout(T);lastKey=null;D={};$('#sd').style.display='none';$('#wait').style.display='block';tick(true)}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function err(t,c,retry){setSt(t,c);$('#sd').style.display=$('#whyc').style.display='none';$('#wait').style.display='block';$('#wait').innerHTML=t+'<br>'+(retry?'<button class="big sm" onclick="restart()">RECONNECT</button>':'');}
+async function tick(first){clearTimeout(T);if(!run)return;
+ if(!navigator.onLine){err('OFFLINE','r');T=setTimeout(tick,4000);return}
+ try{if(first){setSt('Connecting...','y');await sleep(300);setSt('Loading candles...','y')}
+  const cs=await load();if(!run)return;if(first){setSt('Calculating indicators...','y');await sleep(300)}
+  const a=analyze(cs);D={cs,a};
+  const ms=S.tf*60000,age=Date.now()-cs[cs.length-1].t,live=age<ms+90000;
+  if(!live){setSt('🟡 DELAYED / MARKET CLOSED','y')}else setSt(first?'🟢 LIVE':'🟢 LIVE','g');
+  if(first&&live){await sleep(400);setSt('✅ SIGNAL READY','g')}
+  if(live){render();newSignal();resolve(cs)}else{err('Latest candle is '+Math.round(age/60000)+' min old.<br>Market closed or data delayed — no signal.',null,false)}
+  draw()
+ }catch(e){
+  if(e.code===429){err('Market data API limit reached. Please wait or upgrade your API plan.','y',false);T=setTimeout(tick,65000);return}
+  if(e.code===401||e.code===403||e.code===400){err('API error: '+e.message,'r',false);stop();return}
+  if(e instanceof TypeError){err('🔴 CONNECTION LOST<br>Live market data unavailable.','r',true);T=setTimeout(tick,10000);return}
+  err('⚠ '+e.message,'y',true);T=setTimeout(tick,20000);return}
+ const toBound=ms=>ms-(Date.now()%ms)+3000;T=setTimeout(tick,Math.min(S.poll*1000,toBound(S.tf*60000)))}
+function render(){const a=D.a;$('#wait').style.display='none';$('#sd').style.display=$('#whyc').style.display='block';
+ $('#sg').className='sig '+a.sig;$('#sg').textContent=a.sig==='UP'?'🟢 UP':a.sig==='DOWN'?'🔴 DOWN':'🟡 WAIT';
+ $('#s_m').textContent=S.market;$('#s_p').textContent=fmt(D.cs[D.cs.length-1].c);$('#s_r').textContent=TFS.find(t=>t[0]===S.tf)[1].replace('MIN','MINUTES');
+ $('#s_c').textContent=a.conf+'%';$('#s_t').textContent=a.trend;$('#s_s').textContent=(a.score>0?'+':'')+a.score;
+ $('#s_g').textContent=D.gen||'';$('#cdl').textContent=TFS.find(t=>t[0]===S.tf)[1]+' CANDLE — NEXT CANDLE';
+ let w=a.sig==='WAIT'?'<div style="color:var(--y)">Indicators are mixed. Waiting for stronger confirmation.</div>':'';
+ w+=a.F.map(f=>{const up=a.sig==='UP',mk=f.b===null?'•':a.sig==='WAIT'?(f.b?'▲':'▼'):(f.b===(up)?'✓':'⚠');return`<div>${mk} ${f.t}</div>`}).join('')+a.info.map(i=>`<div>• ${i}</div>`).join('');
+ $('#why').innerHTML=w}
+function newSignal(){const a=D.a;if(lastKey===a.key)return;const first=lastKey===null;lastKey=a.key;D.gen=new Date().toLocaleTimeString();$('#s_g').textContent=D.gen;
+ if(a.sig==='WAIT')return;
+ H.unshift({ts:Date.now(),m:S.market,tf:S.tf,sig:a.sig,conf:a.conf,px:a.last.c,exp:a.key+2*S.tf*60000,res:null,paper:S.paper});save();
+ if(first)return;beep();const lbl=TFS.find(t=>t[0]===S.tf)[1];
+ toast(`🔔 NEW NAQI SIGNAL<br>${S.market} • ${lbl}<br><span class="${a.sig}" style="font-size:24px">${a.sig}</span> • Confidence ${a.conf}%`);
+ if(S.notif&&'Notification' in window&&Notification.permission==='granted')try{new Notification('NEW NAQI SIGNAL',{body:`${S.market} ${lbl} ${a.sig} (${a.conf}%)`})}catch(e){}}
+function resolve(cs){let ch=0;for(const h of H)if(!h.res&&h.m===S.market&&h.tf===S.tf){const c=cs.find(x=>x.t===h.exp);if(c){h.res=c.o>h.px?(h.sig==='UP'?'WIN':'LOSS'):c.o<h.px?(h.sig==='DOWN'?'WIN':'LOSS'):'DRAW';ch=1}}if(ch)save()}
+function hist(){$('#hb').innerHTML=H.map(h=>`<tr><td>${new Date(h.ts).toLocaleString([], {day:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td>${h.m}${h.paper?' 📝':''}</td><td>${h.tf}m</td><td class="${h.sig}">${h.sig}</td><td>${h.conf}%</td><td>${fmt(h.px)}</td><td>${h.res||'Pending'}</td></tr>`).join('')||'<tr><td colspan=7 style="color:var(--m)">No signals yet.</td></tr>'}
+
+// countdown (real candle boundaries)
+setInterval(()=>{if(!run||!D.a)return;const ms=S.tf*60000,r=ms-(Date.now()%ms),s=Math.floor(r/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60);
+ $('#cd').textContent=(h?String(h).padStart(2,'0')+':':'')+String(m).padStart(2,'0')+':'+String(s%60).padStart(2,'0')},500);
+
+// ---------- Chart ----------
+function draw(){const cv=$('#cv'),W=cv.clientWidth,Hh=300,d=devicePixelRatio||1;if(!W)return;cv.width=W*d;cv.height=Hh*d;const x=cv.getContext('2d');x.scale(d,d);
+ if(!D.cs){x.fillStyle='#8b94ad';x.fillText('WAITING FOR LIVE MARKET DATA',20,40);return}
+ const all=D.cs,n=Math.min(zoom,all.length),vis=all.slice(-n),cl=all.map(c=>c.c),E=[[9,'#3b82f6'],[21,'#eab308'],[50,'#f472b6']].map(([p,col])=>[ema(cl,p).slice(-n),col]);
+ let hi=Math.max(...vis.map(c=>c.h),D.a.res),lo=Math.min(...vis.map(c=>c.l),D.a.sup);const pd=(hi-lo)*.05;hi+=pd;lo-=pd;
+ const Y=v=>Hh-(v-lo)/(hi-lo)*Hh,w=W/n;
+ vis.forEach((c,i)=>{const up=c.c>=c.o,col=up?'#22c55e':'#ef4444',cx=i*w+w/2;x.strokeStyle=x.fillStyle=col;x.beginPath();x.moveTo(cx,Y(c.h));x.lineTo(cx,Y(c.l));x.stroke();x.fillRect(cx-w*.35,Y(Math.max(c.o,c.c)),w*.7,Math.max(1,Math.abs(Y(c.o)-Y(c.c))))});
+ E.forEach(([a,col])=>{x.strokeStyle=col;x.lineWidth=1.5;x.beginPath();a.forEach((v,i)=>i?x.lineTo(i*w+w/2,Y(v)):x.moveTo(w/2,Y(v)));x.stroke()});
+ x.setLineDash([6,4]);x.lineWidth=1;[[D.a.sup,'#22c55e'],[D.a.res,'#ef4444']].forEach(([v,c])=>{x.strokeStyle=c;x.beginPath();x.moveTo(0,Y(v));x.lineTo(W,Y(v));x.stroke()});x.setLineDash([])}
+let pd0=0;const cvEl=$('#cv');
+cvEl.addEventListener('touchmove',e=>{if(e.touches.length===2){const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);if(pd0)zoom=Math.max(20,Math.min(150,Math.round(zoom*pd0/d)));pd0=d;draw()}},{passive:true});
+cvEl.addEventListener('touchend',()=>pd0=0);
+addEventListener('resize',draw);
+
+// ---------- Network / PWA ----------
+addEventListener('offline',()=>{if(run)err('OFFLINE','r')});
+addEventListener('online',()=>{if(run)restart()});
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js').catch(()=>{}));
+</script></body></html>
